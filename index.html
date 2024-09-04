@@ -1,1 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
 
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>One Calendar</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        #calendar {
+            max-width: 800px;
+            margin: 50px auto;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        #calendar h1 {
+            text-align: center;
+            color: #0066ff;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .calendar-header button {
+            background-color: #0066ff;
+            color: #fff;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .calendar-header button:hover {
+            background-color: #0055cc;
+        }
+
+        #days-of-week {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            color: #0066ff;
+        }
+
+        #days-of-week div {
+            width: calc(100% / 7);
+            text-align: center;
+            font-weight: bold;
+        }
+
+        #calendar-days {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        #calendar-days div {
+            width: calc(100% / 7);
+            height: 100px;
+            border: 1px solid #ddd;
+            box-sizing: border-box;
+            position: relative;
+            cursor: pointer;
+        }
+
+        #calendar-days div:hover {
+            background-color: #f0f0f0;
+        }
+
+        .day-number {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            color: #0066ff;
+            font-weight: bold;
+        }
+
+        .event {
+            background-color: #0066ff;
+            color: #fff;
+            padding: 5px;
+            border-radius: 5px;
+            margin-top: 30px;
+            position: absolute;
+            bottom: 5px;
+            left: 5px;
+            right: 5px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        #event-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+
+        #event-modal-content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 300px;
+        }
+
+        #event-modal-content h2 {
+            color: #0066ff;
+            margin-top: 0;
+        }
+
+        #event-modal-content input,
+        #event-modal-content textarea {
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+
+        #event-modal-content button {
+            width: 100%;
+            background-color: #0066ff;
+            color: #fff;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        #event-modal-content button:hover {
+            background-color: #0055cc;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="calendar">
+        <h1>One Calendar</h1>
+        <div class="calendar-header">
+            <button onclick="prevMonth()">Previous</button>
+            <h2 id="currentMonth"></h2>
+            <button onclick="nextMonth()">Next</button>
+        </div>
+        <div id="days-of-week">
+            <div>Sun</div>
+            <div>Mon</div>
+            <div>Tue</div>
+            <div>Wed</div>
+            <div>Thu</div>
+            <div>Fri</div>
+            <div>Sat</div>
+        </div>
+        <div id="calendar-days"></div>
+    </div>
+
+    <div id="event-modal">
+        <div id="event-modal-content">
+            <h2>Add Event</h2>
+            <input type="text" id="event-title" placeholder="Event Title" />
+            <textarea id="event-description" placeholder="Event Description"></textarea>
+            <input type="datetime-local" id="event-time" />
+            <button onclick="saveEvent()">Save</button>
+        </div>
+    </div>
+
+    <script>
+        let currentMonth = new Date().getMonth();
+        let currentYear = new Date().getFullYear();
+        const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+        function renderCalendar() {
+            const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+            const lastDate = new Date(currentYear, currentMonth + 1, 0).getDate();
+            const calendarDays = document.getElementById('calendar-days');
+            calendarDays.innerHTML = '';
+            document.getElementById('currentMonth').innerText =
+                new Date(currentYear, currentMonth).toLocaleDateString('en-US', {
+                    month: 'long',
+                    year: 'numeric'
+                });
+
+            for (let i = 0; i < firstDay; i++) {
+                const emptyCell = document.createElement('div');
+                calendarDays.appendChild(emptyCell);
+            }
+
+            for (let date = 1; date <= lastDate; date++) {
+                const dayCell = document.createElement('div');
+                dayCell.innerHTML = `<div class="day-number">${date}</div>`;
+                dayCell.onclick = () => openEventModal(date);
+                loadEvents(dayCell, date);
+                calendarDays.appendChild(dayCell);
+            }
+        }
+
+        function prevMonth() {
+            currentMonth--;
+            if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            }
+            renderCalendar();
+        }
+
+        function nextMonth() {
+            currentMonth++;
+            if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            }
+            renderCalendar();
+        }
+
+        function openEventModal(date) {
+            const eventModal = document.getElementById('event-modal');
+            eventModal.style.display = 'flex';
+            document.getElementById('event-time').value = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}T00:00`;
+        }
+
+        function closeEventModal() {
+            document.getElementById('event-modal').style.display = 'none';
+        }
+
+        window.onclick = function (event) {
+            const eventModal = document.getElementById('event-modal');
+            if (event.target === eventModal) {
+                closeEventModal();
+            }
+        }
+
+        function saveEvent() {
+            const title = document.getElementById('event-title').value;
+            const description = document.getElementById('event-description').value;
+            const time = document.getElementById('event-time').value;
+
+            if (title.trim() === '' || time.trim() === '') {
+                alert('Please provide event title and time.');
+                return;
+            }
+
+            const eventDate = new Date(time).toDateString();
+            const eventData = { title, description, time };
+            let events = JSON.parse(localStorage.getItem(eventDate)) || [];
+            events.push(eventData);
+            localStorage.setItem(eventDate, JSON.stringify(events));
+
+            renderCalendar();
+            closeEventModal();
+            sendNotification(title, time);
+        }
+
+        function loadEvents(dayCell, date) {
+            const eventDate = new Date(currentYear, currentMonth, date).toDateString();
+            const events = JSON.parse(localStorage.getItem(eventDate)) || [];
+
+            events.forEach(event => {
+                const eventElement = document.createElement('div');
+                eventElement.className = 'event';
+                eventElement.innerText = event.title;
+                dayCell.appendChild(eventElement);
+            });
+        }
+
+        function sendNotification(title, time) {
+            if (Notification.permission === 'granted') {
+                new Notification('One Calendar', {
+                    body: `Event: ${title}\nTime: ${new Date(time).toLocaleString()}`
+                });
+            } else if (Notification.permission !== 'denied') {
+                Notification.requestPermission().then(permission => {
+                    if (permission === 'granted') {
+                        new Notification('One Calendar', {
+                            body: `Event: ${title}\nTime: ${new Date(time).toLocaleString()}`
+                        });
+                    }
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (Notification.permission !== 'granted') {
+                Notification.requestPermission();
+            }
+            renderCalendar();
+        });
+    </script>
+</body>
+
+</html>
