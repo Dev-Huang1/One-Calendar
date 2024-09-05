@@ -1,3 +1,3 @@
 # One Calendar
 
-A simple free encrypted calendar 📅
+📅 A simple free encrypted calendar
