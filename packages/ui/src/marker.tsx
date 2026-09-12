@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
-
 import { cn } from '@zntr/utils'
+import { Slot } from 'radix-ui'
 
 const markerVariants = cva(
   "group/marker relative flex min-h-4 w-full items-center gap-2 text-left text-sm text-muted-foreground [&_svg:not([class*='size-'])]:size-4 [a]:underline [a]:underline-offset-3 [a]:hover:text-foreground",
@@ -17,21 +17,19 @@ const markerVariants = cva(
   },
 )
 
-/**
- * Inline status row for transcripts and logs: an icon plus a short line,
- * optionally rendered as a separator or with a bottom border.
- *
- * Ported from the user-supplied shadcn component. The original rendered
- * through @base-ui/react's useRender for polymorphism; this repo does not
- * depend on base-ui, so it is a plain div — same classes, same slots.
- */
 function Marker({
   className,
   variant = 'default',
+  asChild = false,
   ...props
-}: React.ComponentProps<'div'> & VariantProps<typeof markerVariants>) {
+}: React.ComponentProps<'div'> &
+  VariantProps<typeof markerVariants> & {
+    asChild?: boolean
+  }) {
+  const Comp = asChild ? Slot.Root : 'div'
+
   return (
-    <div
+    <Comp
       data-slot="marker"
       data-variant={variant}
       className={cn(markerVariants({ variant, className }))}
