@@ -316,13 +316,18 @@ export function SidebarBody({
           derives its hover from `--secondary` via color-mix, so setting only the
           background would make the button jump back to the stock gray on hover.
         */}
-        <Button
-          className="mx-auto mb-4 h-10 w-full justify-center bg-cal-create hover:bg-[color-mix(in_oklch,var(--cal-create),var(--foreground)_5%)]"
-          onClick={onCreateEvent}
-          variant="secondary"
-        >
-          {t.createEvent}
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              className="mx-auto mb-4 h-10 w-full justify-center bg-cal-create hover:bg-[color-mix(in_oklch,var(--cal-create),var(--foreground)_5%)]"
+              onClick={onCreateEvent}
+              variant="secondary"
+            >
+              {t.createEvent}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>{t.createEvent}</TooltipContent>
+        </Tooltip>
 
         <div className="mt-2">
           <Calendar

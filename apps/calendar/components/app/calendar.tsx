@@ -54,6 +54,12 @@ import { translations, useLanguage } from '@zntr/i18n/calendar'
 import { THEME_OPTIONS, type ThemeOption } from '@/lib/theme'
 import { useTheme } from 'next-themes'
 import { Button } from '@zntr/ui/button'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@zntr/ui/tooltip'
 import { APP_CONFIG } from '@/lib/config'
 import {
   CalendarViewType,
@@ -1565,30 +1571,31 @@ export default function Calendar({ className, ..._props }: CalendarProps) {
               locales whose long date string already truncates there.
             */}
             <div className="ml-auto flex shrink-0 max-xl:shrink items-center space-x-2">
-              <div className="relative z-50 shrink-0">
-                <Select
-                  value={
-                    view === 'day' ||
-                    view === 'week' ||
-                    view === 'four-day' ||
-                    view === 'month' ||
-                    view === 'year'
-                      ? view
-                      : defaultView === 'day' ||
-                          defaultView === 'week' ||
-                          defaultView === 'four-day' ||
-                          defaultView === 'month' ||
-                          defaultView === 'year'
-                        ? defaultView
-                        : 'week'
-                  }
-                  onValueChange={(value) => {
-                    if (isCalendarView(value)) {
-                      setView(value)
+              <TooltipProvider delayDuration={300}>
+                <div className="relative z-50 shrink-0">
+                  <Select
+                    value={
+                      view === 'day' ||
+                      view === 'week' ||
+                      view === 'four-day' ||
+                      view === 'month' ||
+                      view === 'year'
+                        ? view
+                        : defaultView === 'day' ||
+                            defaultView === 'week' ||
+                            defaultView === 'four-day' ||
+                            defaultView === 'month' ||
+                            defaultView === 'year'
+                          ? defaultView
+                          : 'week'
                     }
-                  }}
-                >
-                  {/*
+                    onValueChange={(value) => {
+                      if (isCalendarView(value)) {
+                        setView(value)
+                      }
+                    }}
+                  >
+                    {/*
                     `min-w-` not `w-`: the longest option is "Four Days" in
                     English but "Τέσσερις Ημέρες" in Greek and "Секоја година"
                     in Macedonian. At a fixed 100px the trigger clipped the
@@ -1596,21 +1603,21 @@ export default function Calendar({ className, ..._props }: CalendarProps) {
                     which view they are in. 100px stays the floor so the control
                     does not shrink to the width of "Day".
                   */}
-                  <SelectTrigger className="min-w-[100px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectItem value="day">{t.day}</SelectItem>
-                      <SelectItem value="week">{t.week}</SelectItem>
-                      <SelectItem value="month">{t.month}</SelectItem>
-                      <SelectItem value="year">{t.year}</SelectItem>
-                      <SelectItem value="four-day">{t.fourDay}</SelectItem>
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
-              {/*
+                    <SelectTrigger className="min-w-[100px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectItem value="day">{t.day}</SelectItem>
+                        <SelectItem value="week">{t.week}</SelectItem>
+                        <SelectItem value="month">{t.month}</SelectItem>
+                        <SelectItem value="year">{t.year}</SelectItem>
+                        <SelectItem value="four-day">{t.fourDay}</SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {/*
                 The search box is the one child of this cluster allowed to
                 compress. Below the 1280px reference width the wrapper takes
                 the same 12rem basis the InputGroup always had but may shrink
@@ -1618,181 +1625,195 @@ export default function Calendar({ className, ..._props }: CalendarProps) {
                 actually short of space, so an uncompressed window renders
                 exactly as before. At ≥1280px none of these classes apply.
               */}
-              <div
-                className="relative z-50 max-xl:w-48 max-xl:min-w-28 max-xl:shrink max-md:hidden"
-                ref={searchInputRef}
-              >
-                <InputGroup className="w-48 max-xl:w-full">
-                  <InputGroupAddon>
-                    <Search className="h-5 w-5 text-gray-400" />
-                  </InputGroupAddon>
-                  <InputGroupInput
-                    type="text"
-                    placeholder={t.searchEvents}
-                    value={searchTerm}
-                    onFocus={() => setIsSearchFocused(true)}
-                    onBlur={() => {
-                      window.setTimeout(() => setIsSearchFocused(false), 120)
-                    }}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && searchResultEvents.length > 0) {
-                        handleNavigateAndPreview(searchResultEvents[0])
-                        setSearchTerm('')
-                        setIsSearchFocused(false)
-                      }
-                    }}
-                    className="pr-4"
-                  />
-                </InputGroup>
-                {isSearchFocused &&
-                  !!searchTerm &&
-                  searchInputRef.current &&
-                  typeof document !== 'undefined' &&
-                  createPortal(
-                    <div
-                      className="fixed z-[100] w-80 rounded-md border bg-popover p-1 shadow-md"
-                      style={{
-                        left: searchInputRef.current.getBoundingClientRect()
-                          .right,
-                        top:
-                          searchInputRef.current.getBoundingClientRect()
-                            .bottom + 6,
-                        transform: 'translateX(-100%)',
+                <div
+                  className="relative z-50 max-xl:w-48 max-xl:min-w-28 max-xl:shrink max-md:hidden"
+                  ref={searchInputRef}
+                >
+                  <InputGroup className="w-48 max-xl:w-full">
+                    <InputGroupAddon>
+                      <Search className="h-5 w-5 text-gray-400" />
+                    </InputGroupAddon>
+                    <InputGroupInput
+                      type="text"
+                      placeholder={t.searchEvents}
+                      value={searchTerm}
+                      onFocus={() => setIsSearchFocused(true)}
+                      onBlur={() => {
+                        window.setTimeout(() => setIsSearchFocused(false), 120)
                       }}
-                    >
-                      {searchResultEvents.length > 0 ? (
-                        <div className="min-h-0 max-h-[320px] overflow-y-auto">
-                          <div className="space-y-1">
-                            {searchResultEvents.map((event) => (
-                              <button
-                                key={event.id}
-                                type="button"
-                                className="flex w-full cursor-pointer items-start gap-2 rounded-sm px-2 py-2 text-left hover:bg-accent"
-                                onMouseDown={(e) => {
-                                  e.preventDefault()
-                                  handleNavigateAndPreview(event)
-                                  setSearchTerm('')
-                                  setIsSearchFocused(false)
-                                }}
-                              >
-                                <div
-                                  className="mt-0.5 h-4 w-1 shrink-0 rounded-full"
-                                  style={{
-                                    backgroundColor: getEventAccentColor(
-                                      event.color,
-                                    ),
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (
+                          e.key === 'Enter' &&
+                          searchResultEvents.length > 0
+                        ) {
+                          handleNavigateAndPreview(searchResultEvents[0])
+                          setSearchTerm('')
+                          setIsSearchFocused(false)
+                        }
+                      }}
+                      className="pr-4"
+                    />
+                  </InputGroup>
+                  {isSearchFocused &&
+                    !!searchTerm &&
+                    searchInputRef.current &&
+                    typeof document !== 'undefined' &&
+                    createPortal(
+                      <div
+                        className="fixed z-[100] w-80 rounded-md border bg-popover p-1 shadow-md"
+                        style={{
+                          left: searchInputRef.current.getBoundingClientRect()
+                            .right,
+                          top:
+                            searchInputRef.current.getBoundingClientRect()
+                              .bottom + 6,
+                          transform: 'translateX(-100%)',
+                        }}
+                      >
+                        {searchResultEvents.length > 0 ? (
+                          <div className="min-h-0 max-h-[320px] overflow-y-auto">
+                            <div className="space-y-1">
+                              {searchResultEvents.map((event) => (
+                                <button
+                                  key={event.id}
+                                  type="button"
+                                  className="flex w-full cursor-pointer items-start gap-2 rounded-sm px-2 py-2 text-left hover:bg-accent"
+                                  onMouseDown={(e) => {
+                                    e.preventDefault()
+                                    handleNavigateAndPreview(event)
+                                    setSearchTerm('')
+                                    setIsSearchFocused(false)
                                   }}
-                                />
-                                <div className="min-w-0 flex-1">
-                                  <div className="truncate text-sm font-medium leading-none">
-                                    {event.title || t.unnamedEvent}
-                                  </div>
-                                  <div className="mt-1 text-xs text-muted-foreground">
-                                    {formatDateDisplay(
-                                      new Date(event.startDate),
+                                >
+                                  <div
+                                    className="mt-0.5 h-4 w-1 shrink-0 rounded-full"
+                                    style={{
+                                      backgroundColor: getEventAccentColor(
+                                        event.color,
+                                      ),
+                                    }}
+                                  />
+                                  <div className="min-w-0 flex-1">
+                                    <div className="truncate text-sm font-medium leading-none">
+                                      {event.title || t.unnamedEvent}
+                                    </div>
+                                    <div className="mt-1 text-xs text-muted-foreground">
+                                      {formatDateDisplay(
+                                        new Date(event.startDate),
+                                      )}
+                                    </div>
+                                    {event.location && (
+                                      <div className="truncate text-xs text-muted-foreground">
+                                        {event.location}
+                                      </div>
                                     )}
                                   </div>
-                                  {event.location && (
-                                    <div className="truncate text-xs text-muted-foreground">
-                                      {event.location}
-                                    </div>
-                                  )}
-                                </div>
-                              </button>
-                            ))}
+                                </button>
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      ) : (
-                        <div className="px-2 py-3 text-center text-sm text-muted-foreground">
-                          {t.noMatchingEvents}
-                        </div>
-                      )}
-                    </div>,
-                    document.body,
-                  )}
-              </div>
-              {/* AI palette trigger: one affordance on every form factor.
+                        ) : (
+                          <div className="px-2 py-3 text-center text-sm text-muted-foreground">
+                            {t.noMatchingEvents}
+                          </div>
+                        )}
+                      </div>,
+                      document.body,
+                    )}
+                </div>
+                {/* AI palette trigger: one affordance on every form factor.
                   Desktop users also reach it via Cmd/Ctrl+K. Hidden when
                   the deployment has no Groq key. */}
-              {AI_ENABLED && (
+                {AI_ENABLED && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="rounded-full h-8 w-8"
+                        aria-label={t.aiAssistant}
+                        onClick={openAiPalette}
+                      >
+                        <Sparkles className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>{t.aiAssistant}</TooltipContent>
+                  </Tooltip>
+                )}
+                {/* Mobile Form: search collapses to an icon that opens the
+                  full-screen overlay rendered after the header. */}
                 <Button
                   variant="outline"
                   size="icon"
-                  className="rounded-full h-8 w-8"
-                  aria-label={t.aiAssistant}
-                  onClick={openAiPalette}
+                  className="rounded-full h-8 w-8 md:hidden"
+                  aria-label={t.searchEvents}
+                  onClick={() => setMobileSearchOpen(true)}
                 >
-                  <Sparkles className="h-4 w-4" />
+                  <Search className="h-4 w-4" />
                 </Button>
-              )}
-              {/* Mobile Form: search collapses to an icon that opens the
-                  full-screen overlay rendered after the header. */}
-              <Button
-                variant="outline"
-                size="icon"
-                className="rounded-full h-8 w-8 md:hidden"
-                aria-label={t.searchEvents}
-                onClick={() => setMobileSearchOpen(true)}
-              >
-                <Search className="h-4 w-4" />
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  {/* Not part of the Mobile Form's single-row top bar
-                      (ADR-0019): hamburger, date, today, view, search,
-                      profile. Help stays desktop-only. */}
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="rounded-full h-8 w-8 max-md:hidden"
-                    aria-label={t.help}
-                  >
-                    <CircleHelp className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  {isSignedIn ? (
-                    <DropdownMenuItem onClick={() => router.push('/landing')}>
-                      <House className="mr-2 h-4 w-4" />
-                      {t.home}
+                <DropdownMenu>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <DropdownMenuTrigger asChild>
+                        {/* Not part of the Mobile Form's single-row top bar
+                          (ADR-0019): hamburger, date, today, view, search,
+                          profile. Help stays desktop-only. */}
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="rounded-full h-8 w-8 max-md:hidden"
+                          aria-label={t.help}
+                        >
+                          <CircleHelp className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent>{t.help}</TooltipContent>
+                  </Tooltip>
+                  <DropdownMenuContent align="end">
+                    {isSignedIn ? (
+                      <DropdownMenuItem onClick={() => router.push('/landing')}>
+                        <House className="mr-2 h-4 w-4" />
+                        {t.home}
+                      </DropdownMenuItem>
+                    ) : null}
+                    <DropdownMenuItem
+                      onClick={() =>
+                        window.open(
+                          APP_CONFIG.contact.statusPageUrl,
+                          '_blank',
+                          'noopener,noreferrer',
+                        )
+                      }
+                    >
+                      <ShieldCheck className="mr-2 h-4 w-4" />
+                      {t.status}
                     </DropdownMenuItem>
-                  ) : null}
-                  <DropdownMenuItem
-                    onClick={() =>
-                      window.open(
-                        APP_CONFIG.contact.statusPageUrl,
-                        '_blank',
-                        'noopener,noreferrer',
-                      )
-                    }
-                  >
-                    <ShieldCheck className="mr-2 h-4 w-4" />
-                    {t.status}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => {
-                      window.location.href = `mailto:${APP_CONFIG.contact.feedbackEmail}`
-                    }}
-                  >
-                    <MessageSquare className="mr-2 h-4 w-4" />
-                    {t.feedback}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => router.push('/privacy')}>
-                    <FileText className="mr-2 h-4 w-4" />
-                    {t.privacy}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => router.push('/terms')}>
-                    <ScrollText className="mr-2 h-4 w-4" />
-                    {t.tos}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <UserProfileButton
-                variant="outline"
-                className="rounded-full h-8 w-8"
-                onNavigateToView={handleNavigateToView}
-              />
+                    <DropdownMenuItem
+                      onClick={() => {
+                        window.location.href = `mailto:${APP_CONFIG.contact.feedbackEmail}`
+                      }}
+                    >
+                      <MessageSquare className="mr-2 h-4 w-4" />
+                      {t.feedback}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => router.push('/privacy')}>
+                      <FileText className="mr-2 h-4 w-4" />
+                      {t.privacy}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => router.push('/terms')}>
+                      <ScrollText className="mr-2 h-4 w-4" />
+                      {t.tos}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <UserProfileButton
+                  variant="outline"
+                  className="rounded-full h-8 w-8"
+                  onNavigateToView={handleNavigateToView}
+                />
+              </TooltipProvider>
             </div>
           </header>
           {/* Mobile Form: full-screen search overlay with a back arrow — the
