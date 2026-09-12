@@ -31,6 +31,11 @@ export async function withRedis<T>(
 ): Promise<T> {
   try {
     const redis = getRedis()
+    // lazyConnect leaves the socket closed until the first command, and with
+    // enableOfflineQueue disabled that first command is rejected outright on a
+    // cold start. Wait for the connection before running `fn` so the count
+    // lands in Redis instead of silently falling back.
+    if (redis.status === 'wait') await redis.connect()
     return await fn(redis)
   } catch {
     return fallback()

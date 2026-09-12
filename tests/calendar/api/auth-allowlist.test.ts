@@ -141,7 +141,6 @@ describe('calendar auth surface', () => {
       subject: '203.0.113.8',
       limit: 20,
       windowSeconds: 3600,
-      failClosed: true,
     })
   })
 
@@ -155,14 +154,12 @@ describe('calendar auth surface', () => {
       subject: '203.0.113.8',
       limit: 10,
       windowSeconds: 60,
-      failClosed: true,
     })
     expect(mocks.limiter).toHaveBeenNthCalledWith(2, {
       name: 'auth:device/code:global',
       subject: 'all',
       limit: 300,
       windowSeconds: 60,
-      failClosed: true,
     })
   })
 

@@ -45,13 +45,11 @@ const LIMITS: Record<string, AuthLimit> = {
   'oauth2/authorize': {
     limit: 30,
     windowSeconds: 60,
-    failClosed: true,
     globalLimit: 600,
   },
   'oauth2/register': {
     limit: 20,
     windowSeconds: 3600,
-    failClosed: true,
     globalLimit: 100,
   },
   'oauth2/token': { limit: 30, windowSeconds: 60 },
@@ -60,7 +58,6 @@ const LIMITS: Record<string, AuthLimit> = {
   'device/code': {
     limit: 10,
     windowSeconds: 60,
-    failClosed: true,
     globalLimit: 300,
   },
 }
