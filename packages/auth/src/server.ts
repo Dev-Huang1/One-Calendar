@@ -1,4 +1,5 @@
-import { betterAuth } from 'better-auth'
+import { betterAuth, type BetterAuthPlugin } from 'better-auth'
+import { createAuthMiddleware } from 'better-auth/api'
 import { twoFactor, emailOTP } from 'better-auth/plugins'
 import { jwt } from 'better-auth/plugins'
 import { sentinel } from '@better-auth/infra'
@@ -32,6 +33,42 @@ export function oauthProviderAuthServerMetadata(
 
 export function createMcpOAuthPlugins(oauth: McpOAuthOptions) {
   return [
+    {
+      id: 'mcp-native-registration',
+      hooks: {
+        before: [
+          {
+            matcher: (ctx) => ctx.path === '/oauth2/register',
+            handler: createAuthMiddleware(async (ctx) => {
+              const body = ctx.body
+              // MCP CLIs commonly omit the OIDC application_type. Infer it only
+              // for public clients with exact HTTP loopback callbacks; the
+              // provider still validates every URI, PKCE and token exchange.
+              if (
+                body?.application_type !== undefined ||
+                body?.token_endpoint_auth_method !== 'none' ||
+                !Array.isArray(body?.redirect_uris) ||
+                body.redirect_uris.length === 0 ||
+                !body.redirect_uris.every(
+                  (uri: unknown) =>
+                    typeof uri === 'string' &&
+                    /^http:\/\/(?:localhost|127\.0\.0\.1|\[::1\])(?::\d+)?(?:\/|$)/i.test(
+                      uri,
+                    ),
+                )
+              )
+                return
+              return {
+                context: {
+                  ...ctx,
+                  body: { ...body, application_type: 'native' },
+                },
+              }
+            }),
+          },
+        ],
+      },
+    } satisfies BetterAuthPlugin,
     jwt(),
     mcp({
       resource: oauth.resource,

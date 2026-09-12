@@ -1,7 +1,8 @@
 'use client'
 
 import { Button } from '@zntr/ui/button'
-import { ArrowRightIcon, Asterisk } from 'lucide-react'
+import { ArrowRightIcon } from 'lucide-react'
+import { ZentraLogo } from '@/components/brand/zentra-logo'
 import Link from 'next/link'
 
 const stars = Array.from({ length: 165 }, (_, i) => ({
@@ -83,7 +84,7 @@ export function CallToAction() {
       <div className="relative flex flex-col justify-center items-center h-full w-full px-6 py-20 md:py-28">
         <div className="mb-8 flex items-center justify-center">
           <div className="flex h-20 w-20 items-center justify-center rounded-[2rem] bg-black/30 backdrop-blur-md ring-1 ring-white/20">
-            <Asterisk className="h-10 w-10 text-white" strokeWidth={3} />
+            <ZentraLogo className="h-10 w-10" />
           </div>
         </div>
 

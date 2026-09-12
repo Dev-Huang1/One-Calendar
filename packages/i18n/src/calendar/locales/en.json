@@ -677,6 +677,7 @@
   "mcpActivityDesc": "Tool calls and data changes made through MCP.",
   "mcpPrevPage": "Prev",
   "mcpNextPage": "Next",
+  "mcpFilters": "Filters",
   "mcpFilterAllEntries": "All entries",
   "mcpFilterToolCalls": "Tool calls",
   "mcpFilterRequests": "Requests",

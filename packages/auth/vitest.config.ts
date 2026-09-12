@@ -9,7 +9,10 @@ export default defineConfig({
     environment: 'node',
     setupFiles: ['./vitest-setup.ts'],
     globals: true,
-    include: ['../../tests/auth/**/*.test.ts', '../../tests/auth/**/*.test.tsx'],
+    include: [
+      '../../tests/auth/**/*.test.ts',
+      '../../tests/auth/**/*.test.tsx',
+    ],
     // The integration tests (plan 026 Seam 2) reach a real Postgres in
     // eu-north-1; a TLS handshake from a phone does not fit the 5s default.
     // Kept as a per-suite budget rather than a global one so a genuinely hung
@@ -48,6 +51,10 @@ export default defineConfig({
       'better-auth/client/plugins': path.resolve(
         __dirname,
         'node_modules/better-auth/dist/client/plugins/index.mjs',
+      ),
+      'better-auth/api': path.resolve(
+        __dirname,
+        'node_modules/better-auth/dist/api/index.mjs',
       ),
       'better-auth/db': path.resolve(
         __dirname,

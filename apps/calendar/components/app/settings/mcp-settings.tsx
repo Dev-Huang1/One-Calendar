@@ -18,14 +18,13 @@ import {
 import { Input } from '@zntr/ui/input'
 import { Checkbox } from '@zntr/ui/checkbox'
 import { Badge } from '@zntr/ui/badge'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@zntr/ui/select'
 import { Spinner } from '@zntr/ui/spinner'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@zntr/ui/tooltip'
 import {
   Empty,
   EmptyContent,
@@ -40,6 +39,13 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuCheckboxItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuLabel,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
 } from '@zntr/ui/dropdown-menu'
 import {
   AlertDialog,
@@ -63,12 +69,10 @@ import {
   Eye,
   EyeOff,
   MoreHorizontal,
-  Pencil,
   SlidersHorizontal,
   ScrollText,
   Plug,
   Search,
-  Clock,
 } from 'lucide-react'
 import { translations, useLanguage } from '@zntr/i18n/calendar'
 import { cn } from '@zntr/utils'
@@ -1146,104 +1150,140 @@ function MCPAuditLogs() {
               aria-label={t.mcpFilterSearchPlaceholder}
             />
             {searchInput ? (
-              <button
-                type="button"
-                onClick={() => setSearchInput('')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                aria-label={t.mcpPermissionsClear}
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
+              <TooltipProvider delayDuration={300}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      onClick={() => setSearchInput('')}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      aria-label={t.mcpPermissionsClear}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>{t.mcpPermissionsClear}</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             ) : null}
           </div>
 
-          <Select
-            value={filters.window}
-            onValueChange={(value) =>
-              updateFilters({ window: value as AuditWindow })
-            }
-          >
-            <SelectTrigger size="sm" className="min-w-[8rem]">
-              <Clock className="mr-1 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {AUDIT_WINDOWS.map((window) => (
-                <SelectItem key={window} value={window}>
-                  {windowLabels[window]}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <Select
-            value={filters.entryType}
-            onValueChange={(value) =>
-              updateFilters({ entryType: value as AuditFilters['entryType'] })
-            }
-          >
-            {/*
-              `min-w-` not `w-`: these two triggers show the SELECTED filter,
-              so clipping them hides which filter is active. The row already
-              wraps, so letting them grow costs nothing. Both keep their old
-              width as a floor so the controls stay aligned when the labels
-              are short.
-            */}
-            <SelectTrigger size="sm" className="min-w-[9.5rem]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t.mcpFilterAllEntries}</SelectItem>
-              <SelectItem value="tool_call">{t.mcpFilterToolCalls}</SelectItem>
-              <SelectItem value="request">{t.mcpFilterRequests}</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select
-            value={filters.toolName}
-            onValueChange={(value) => updateFilters({ toolName: value })}
-            disabled={toolNames.length === 0}
-          >
-            <SelectTrigger size="sm" className="min-w-[11rem]">
-              <SelectValue placeholder={t.mcpFilterAllTools} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t.mcpFilterAllTools}</SelectItem>
-              {toolNames.map((name) => (
-                <SelectItem key={name} value={name}>
-                  {name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Button
-            variant={filters.mutationsOnly ? 'secondary' : 'outline'}
-            size="sm"
-            className="h-8 text-xs"
-            aria-pressed={filters.mutationsOnly}
-            onClick={() =>
-              updateFilters({ mutationsOnly: !filters.mutationsOnly })
-            }
-          >
-            <Pencil className="mr-1 h-3.5 w-3.5 shrink-0" />
-            {t.mcpFilterDataChanges}
-          </Button>
-
-          <Button
-            variant={filters.failuresOnly ? 'secondary' : 'outline'}
-            size="sm"
-            className="h-8 text-xs"
-            aria-pressed={filters.failuresOnly}
-            onClick={() =>
-              updateFilters({ failuresOnly: !filters.failuresOnly })
-            }
-          >
-            <X className="mr-1 h-3.5 w-3.5 shrink-0" />
-            {t.mcpFilterFailures}
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant={filtersActive ? 'secondary' : 'outline'}
+                size="sm"
+                className="h-8 text-xs"
+              >
+                <SlidersHorizontal className="size-3.5" />
+                {t.mcpFilters}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              className="w-64 max-w-[calc(100vw-2rem)]"
+            >
+              <DropdownMenuLabel>{t.mcpFilters}</DropdownMenuLabel>
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  {windowLabels[filters.window]}
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
+                  <DropdownMenuRadioGroup
+                    value={filters.window}
+                    onValueChange={(value) =>
+                      updateFilters({ window: value as AuditWindow })
+                    }
+                  >
+                    {AUDIT_WINDOWS.map((window) => (
+                      <DropdownMenuRadioItem key={window} value={window}>
+                        {windowLabels[window]}
+                      </DropdownMenuRadioItem>
+                    ))}
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  {filters.entryType === 'all'
+                    ? t.mcpFilterAllEntries
+                    : filters.entryType === 'tool_call'
+                      ? t.mcpFilterToolCalls
+                      : t.mcpFilterRequests}
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
+                  <DropdownMenuRadioGroup
+                    value={filters.entryType}
+                    onValueChange={(value) =>
+                      updateFilters({
+                        entryType: value as AuditFilters['entryType'],
+                      })
+                    }
+                  >
+                    <DropdownMenuRadioItem value="all">
+                      {t.mcpFilterAllEntries}
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="tool_call">
+                      {t.mcpFilterToolCalls}
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="request">
+                      {t.mcpFilterRequests}
+                    </DropdownMenuRadioItem>
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  {filters.toolName === 'all'
+                    ? t.mcpFilterAllTools
+                    : filters.toolName}
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent className="max-h-64 overflow-y-auto">
+                  <DropdownMenuRadioGroup
+                    value={filters.toolName}
+                    onValueChange={(value) =>
+                      updateFilters({ toolName: value })
+                    }
+                  >
+                    <DropdownMenuRadioItem value="all">
+                      {t.mcpFilterAllTools}
+                    </DropdownMenuRadioItem>
+                    {Array.from(
+                      new Set([
+                        ...toolNames,
+                        ...(filters.toolName === 'all'
+                          ? []
+                          : [filters.toolName]),
+                      ]),
+                    ).map((name) => (
+                      <DropdownMenuRadioItem key={name} value={name}>
+                        {name}
+                      </DropdownMenuRadioItem>
+                    ))}
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+              <DropdownMenuSeparator />
+              <DropdownMenuCheckboxItem
+                checked={filters.mutationsOnly}
+                onCheckedChange={(checked) =>
+                  updateFilters({ mutationsOnly: checked })
+                }
+                onSelect={(event) => event.preventDefault()}
+              >
+                {t.mcpFilterDataChanges}
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                checked={filters.failuresOnly}
+                onCheckedChange={(checked) =>
+                  updateFilters({ failuresOnly: checked })
+                }
+                onSelect={(event) => event.preventDefault()}
+              >
+                {t.mcpFilterFailures}
+              </DropdownMenuCheckboxItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           {filtersActive ? (
             <Button

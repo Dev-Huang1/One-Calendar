@@ -1,6 +1,6 @@
 {
   "name": "zentra-calendar",
-  "version": "3.0.0-rc.26",
+  "version": "3.0.0-rc.45",
   "private": true,
   "packageManager": "pnpm@11.5.2",
   "scripts": {

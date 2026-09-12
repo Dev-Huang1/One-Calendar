@@ -36,6 +36,13 @@
       "when": 1785600000000,
       "tag": "0005_event_status_and_indexes",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1789174800000,
+      "tag": "0013_two_factor_lockout_fields",
+      "breakpoints": true
     }
   ]
 }

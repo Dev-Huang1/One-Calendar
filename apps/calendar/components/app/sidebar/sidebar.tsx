@@ -21,6 +21,13 @@ import { translations, type Language } from '@zntr/i18n/calendar'
 import { Calendar } from '@zntr/ui/calendar'
 import { Checkbox } from '@zntr/ui/checkbox'
 import { Button } from '@zntr/ui/button'
+import { Spinner } from '@zntr/ui/spinner'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@zntr/ui/tooltip'
 import { Input } from '@zntr/ui/input'
 import { Label } from '@zntr/ui/label'
 import {
@@ -31,7 +38,7 @@ import {
   Plus,
   Trash2,
 } from 'lucide-react'
-import { useEffect, useState, type CSSProperties } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { cn } from '@zntr/utils'
 import { toast } from 'sonner'
 import { ZentraLogo } from '@/components/brand/zentra-logo'
@@ -113,6 +120,8 @@ export function SidebarBody({
   const [newCategoryName, setNewCategoryName] = useState('')
   const [newCategoryColor, setNewCategoryColor] = useState('bg-blue-500')
   const [showAddCategory, setShowAddCategory] = useState(false)
+  const [creatingCategory, setCreatingCategory] = useState(false)
+  const categoryCreationPending = useRef(false)
   const [localSelectedDate, setLocalSelectedDate] = useState<Date | undefined>(
     selectedDate || new Date(),
   )
@@ -170,7 +179,10 @@ export function SidebarBody({
   }, [selectedDate])
 
   const addCategory = async () => {
+    if (categoryCreationPending.current) return
     if (newCategoryName.trim()) {
+      categoryCreationPending.current = true
+      setCreatingCategory(true)
       const name = newCategoryName.trim()
       const color = newCategoryColor
       try {
@@ -189,6 +201,9 @@ export function SidebarBody({
         })
       } catch {
         toast.error(t.createCategoryFailed)
+      } finally {
+        categoryCreationPending.current = false
+        setCreatingCategory(false)
       }
     }
   }
@@ -285,7 +300,7 @@ export function SidebarBody({
   }
 
   return (
-    <>
+    <TooltipProvider delayDuration={300}>
       <div className="p-4">
         <div className="mb-3 flex items-center">
           {/* Decorative: the <h1> beside it already names the brand. */}
@@ -351,11 +366,23 @@ export function SidebarBody({
               </div>
               <div className="flex items-center">
                 <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-7 w-7">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          aria-label={`${t.more}: ${calendar.name}`}
+                        >
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {t.more}: {calendar.name}
+                    </TooltipContent>
+                  </Tooltip>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem
                       onClick={() => handleEditClick(calendar.id)}
@@ -423,7 +450,13 @@ export function SidebarBody({
                 placeholder={t.categoryName}
                 className="text-sm"
               />
-              <Button size="sm" onClick={addCategory}>
+              <Button
+                size="sm"
+                onClick={addCategory}
+                disabled={creatingCategory || !newCategoryName.trim()}
+                aria-busy={creatingCategory}
+              >
+                {creatingCategory && <Spinner className="size-4" />}
                 {t.addCategory}
               </Button>
             </div>
@@ -477,7 +510,9 @@ export function SidebarBody({
 
       <Dialog
         open={manageCategoriesOpen}
-        onOpenChange={setManageCategoriesOpen}
+        onOpenChange={(open) => {
+          if (!categoryCreationPending.current) setManageCategoriesOpen(open)
+        }}
       >
         <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -488,6 +523,7 @@ export function SidebarBody({
               <Label htmlFor="category-name">{t.categoryName}</Label>
               <Input
                 id="category-name"
+                disabled={creatingCategory}
                 value={newCategoryName}
                 onChange={(e) => setNewCategoryName(e.target.value)}
                 placeholder={t.categoryName}
@@ -497,6 +533,7 @@ export function SidebarBody({
               <Label htmlFor="category-color">{t.color}</Label>
               <Select
                 value={newCategoryColor}
+                disabled={creatingCategory}
                 onValueChange={setNewCategoryColor}
               >
                 <SelectTrigger id="category-color">
@@ -524,11 +561,20 @@ export function SidebarBody({
             <Button
               variant="outline"
               onClick={() => setManageCategoriesOpen(false)}
+              disabled={creatingCategory}
             >
               {t.cancel}
             </Button>
-            <Button onClick={addCategory} disabled={!newCategoryName}>
-              <Plus className="mr-2 h-4 w-4" />
+            <Button
+              onClick={addCategory}
+              disabled={creatingCategory || !newCategoryName.trim()}
+              aria-busy={creatingCategory}
+            >
+              {creatingCategory ? (
+                <Spinner className="mr-2 size-4" />
+              ) : (
+                <Plus className="mr-2 h-4 w-4" />
+              )}
               {t.addCategory}
             </Button>
           </DialogFooter>
@@ -590,7 +636,7 @@ export function SidebarBody({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </>
+    </TooltipProvider>
   )
 }
 
